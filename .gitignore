@@ -1,0 +1,27 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+*.db
+log/
+logs/
+
+
+# Virtual environments
+.venv
+venv
+.env
+env
+
+
+# IDE and editor files
+.vscode/
+.github/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
