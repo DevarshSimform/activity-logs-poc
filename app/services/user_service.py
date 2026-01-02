@@ -9,10 +9,15 @@ from app.database.models import User
 
 
 class UserService:
-    @staticmethod
+
+    def __init__(self, db: Session):
+        self.db = db
+        self.user_repo = UserRepository(db)
+        
+
     async def update_profile(
+        self,
         *,
-        db: Session,
         current_user: User,
         payload: UserProfileUpdate,
         background_tasks: BackgroundTasks,
@@ -27,7 +32,7 @@ class UserService:
         for field, value in update_data.items():
             setattr(current_user, field, value)
 
-        updated_user = UserRepository.update(db, current_user)
+        updated_user = self.user_repo.update(current_user)
 
         # Add activity log in background
         background_tasks.add_task(

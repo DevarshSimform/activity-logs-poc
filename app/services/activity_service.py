@@ -1,4 +1,3 @@
-import asyncio
 import json
 from app.database import SessionLocal
 from app.database.models.activity import ActivityType
@@ -56,3 +55,57 @@ class ActivityService:
         finally:
             db.close()
 
+
+    @staticmethod
+    async def log_task_activity(
+        *,
+        user_id: int,
+        task_id: int,
+        parent_task_id: int | None,
+        activity_type: ActivityType,
+        action: str,
+        event_type: str,
+        request_id: str,
+        data: dict,
+        kafka_producer,
+        topic: str,
+        actor: dict,
+        meta: dict,
+    ) -> None:
+        db = SessionLocal()
+        try:
+            ActivityRepository.create(
+                db=db,
+                task_id=task_id,
+                user_id=user_id,
+                activity_type=activity_type,
+                action=action,
+                request_id=request_id,
+                data=json.dumps(data),
+            )
+            db.commit()
+
+            event = BaseEvent(
+                event_type=event_type,
+                actor=actor,
+                resource={
+                    "type": "task",
+                    "id": task_id,
+                    "parent_id": parent_task_id,
+                },
+                payload=data,
+                request_id=request_id,
+                meta=meta,
+            )
+
+            await kafka_producer.publish(
+                topic=topic,
+                message=event.to_dict(),
+            )
+
+        except Exception as e:
+            db.rollback()
+            print("❌ Failed to log task activity:", str(e))
+
+        finally:
+            db.close()

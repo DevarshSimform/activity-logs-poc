@@ -21,8 +21,9 @@ async def update_profile(
 ):
     request_id = request.state.request_id
 
-    return await UserService.update_profile(
-        db=db,
+    user_service = UserService(db)
+
+    return await user_service.update_profile(
         current_user=current_user,
         payload=payload,
         background_tasks=background_tasks,

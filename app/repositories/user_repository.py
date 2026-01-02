@@ -4,24 +4,24 @@ from app.database.models import User
 
 class UserRepository:
 
-    @staticmethod
-    def get_by_email(db: Session, email: str) -> User | None:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def get_by_email(self, email: str) -> User | None:
         return (
-            db.query(User)
+            self.db.query(User)
             .filter(User.email == email, User.is_deleted.is_(False))
             .first()
         )
     
-    @staticmethod
-    def get_by_id(db: Session, user_id: int) -> User | None:
-        return db.query(User).filter(
+    def get_by_id(self, user_id: int) -> User | None:
+        return self.db.query(User).filter(
             User.id == user_id,
             User.is_deleted == False
         ).first()
 
-    @staticmethod
     def create(
-        db: Session,
+        self,
         *,
         email: str,
         firstname: str,
@@ -35,14 +35,13 @@ class UserRepository:
             hashed_password=hashed_password,
             is_admin=False,
         )
-        db.add(user)
-        db.commit()
-        db.refresh(user)
+        self.db.add(user)
+        self.db.commit()
+        self.db.refresh(user)
         return user
 
-    @staticmethod
-    def update(db: Session, user: User) -> User:
-        db.add(user)
-        db.commit()
-        db.refresh(user)
+    def update(self, user: User) -> User:
+        self.db.add(user)
+        self.db.commit()
+        self.db.refresh(user)
         return user

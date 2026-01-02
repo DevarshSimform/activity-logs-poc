@@ -9,15 +9,15 @@ from app.database.models import User
 
 class AuthService:
 
-    def __init__(self):
+    def __init__(self, db: Session):
         self.jwt_service = JWTService()
+        self.user_repo = UserRepository(db)
 
     def register_user(
         self,
-        db: Session,
         payload: UserRegisterRequest,
     ) -> User:
-        existing_user = UserRepository.get_by_email(db, payload.email)
+        existing_user = self.user_repo.get_by_email(payload.email)
         if existing_user:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
@@ -26,8 +26,7 @@ class AuthService:
 
         hashed_password = self.jwt_service.hash_password(payload.password)
 
-        user = UserRepository.create(
-            db,
+        user = self.user_repo.create(
             email=payload.email,
             firstname=payload.firstname,
             lastname=payload.lastname,
@@ -38,10 +37,9 @@ class AuthService:
 
     def login_user(
         self,
-        db: Session,
         payload: UserLoginRequest,
     ) -> str:
-        user = UserRepository.get_by_email(db, payload.email)
+        user = self.user_repo.get_by_email(payload.email)
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -74,10 +72,9 @@ class AuthService:
 
     def login_admin_user(
         self,
-        db: Session,
         payload: UserLoginRequest,
     ) -> str:
-        user = UserRepository.get_by_email(db, payload.email)
+        user = self.user_repo.get_by_email(payload.email)
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,

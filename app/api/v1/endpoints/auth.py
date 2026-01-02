@@ -23,8 +23,8 @@ def register_user(
     payload: UserRegisterRequest,
     db: Session = Depends(get_db),
 ):
-    service = AuthService()
-    return service.register_user(db, payload)
+    service = AuthService(db)
+    return service.register_user(payload)
 
 
 @router.post(
@@ -35,8 +35,8 @@ def login_user(
     payload: UserLoginRequest,
     db: Session = Depends(get_db),
 ):
-    service = AuthService()
-    token = service.login_user(db, payload)
+    service = AuthService(db)
+    token = service.login_user(payload)
     return TokenResponse(**token)
 
 
@@ -48,6 +48,6 @@ def login_admin_user(
     payload: UserLoginRequest,
     db: Session = Depends(get_db),
 ):
-    service = AuthService()
-    token = service.login_admin_user(db, payload)
+    service = AuthService(db)
+    token = service.login_admin_user(payload)
     return TokenResponse(**token)

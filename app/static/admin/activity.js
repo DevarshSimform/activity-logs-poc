@@ -29,31 +29,75 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  const EVENT_LABELS = {
+    "profile.updated": {
+      action: "Updated profile",
+      badge: "Profile",
+    },
+    "task.created": {
+      action: "Created task",
+      badge: "Task",
+    },
+    "task.updated": {
+      action: "Updated task",
+      badge: "Task",
+    },
+    "task.deleted": {
+      action: "Deleted task",
+      badge: "Task",
+    },
+    "subtask.created": {
+      action: "Created subtask",
+      badge: "Subtask",
+    },
+    "subtask.updated": {
+      action: "Updated subtask",
+      badge: "Subtask",
+    },
+    "subtask.deleted": {
+      action: "Deleted subtask",
+      badge: "Subtask",
+    },
+  };
 
   function renderActivity(event) {
-    // Defensive guard
     if (!event || !event.event_type) return;
-    if (event.event_type !== "profile.updated") return;
+
+    const config = EVENT_LABELS[event.event_type];
+
+    // Skip unknown events safely
+    if (!config) return;
 
     const rowId = `details-${event.event_id}`;
-    const changes = Object.keys(event.payload?.changes || {});
+    const changes =
+      event.event_type === "profile.updated"
+        ? Object.keys(event.payload?.changes || {})
+        : [];
+
     const changesText = changes.length ? changes.join(", ") : "—";
 
-    // Main table row
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${new Date(event.occurred_at).toLocaleTimeString()}</td>
       <td>${event.actor?.email ?? "Unknown"}</td>
-      <td>Updated profile</td>
-      <td>${changes.length ? `<span class="badge changes-badge">${changesText}</span>` : "—"}</td>
       <td>
-        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#${rowId}">
+        ${config.action}
+        <span class="badge bg-secondary ms-1">${config.badge}</span>
+      </td>
+      <td>
+        ${changes.length
+          ? `<span class="badge changes-badge">${changesText}</span>`
+          : "—"}
+      </td>
+      <td>
+        <button class="btn btn-sm btn-outline-primary"
+                data-bs-toggle="collapse"
+                data-bs-target="#${rowId}">
           View
         </button>
       </td>
     `;
 
-    // Details row
     const detailsTr = document.createElement("tr");
     detailsTr.innerHTML = `
       <td colspan="5" class="p-0">
@@ -74,5 +118,6 @@ document.addEventListener("DOMContentLoaded", () => {
     tableBody.prepend(detailsTr);
     tableBody.prepend(tr);
   }
+
 
 });
